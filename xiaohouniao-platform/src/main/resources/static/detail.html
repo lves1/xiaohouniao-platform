@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活动详情 - 小候鸟关爱平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background-color: #f7f9fc; font-size: 16px; }
+        .hero-banner-gradient { background: linear-gradient(135deg, #e0f2fe 0%, #fff7ed 50%, #fdf2f8 100%); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .animate-fadeIn { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-gray-700 antialiased min-h-screen flex flex-col">
+
+<header class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-all text-sm font-medium">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>返回首页</span>
+        </a>
+        <div class="flex items-center space-x-3">
+            <div class="bg-blue-600 text-white w-7 h-7 rounded-full flex items-center justify-center"><i class="fa-solid fa-dove text-xs"></i></div>
+            <span class="text-sm font-bold text-gray-800">小候鸟关爱平台</span>
+        </div>
+    </div>
+</header>
+
+<main class="flex-grow" id="app">
+
+    <!-- 加载中 -->
+    <div v-if="loading" class="flex items-center justify-center py-32">
+        <div class="text-center text-gray-400">
+            <i class="fa-solid fa-spinner animate-spin text-3xl mb-3 block"></i>
+            <p class="text-sm">加载中...</p>
+        </div>
+    </div>
+
+    <!-- 错误 -->
+    <div v-else-if="errorMsg" class="flex items-center justify-center py-32 px-4">
+        <div class="text-center max-w-sm">
+            <div class="bg-red-50 text-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-circle-exclamation text-2xl"></i></div>
+            <h2 class="text-lg font-bold text-gray-800 mb-2">{{errorMsg}}</h2>
+            <a href="/" class="inline-block bg-blue-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2 hover:bg-blue-500 transition-all">返回首页</a>
+        </div>
+    </div>
+
+    <!-- 内容 -->
+    <div v-else-if="item" class="animate-fadeIn">
+        <div class="relative bg-slate-800 h-64 sm:h-96 flex items-center justify-center">
+            <img v-if="item.coverUrl" :src="item.coverUrl" class="w-full h-full object-cover" alt="封面图" />
+            <template v-else>
+                <div class="hero-banner-gradient w-full h-full flex items-center justify-center">
+                    <div class="text-center">
+                        <i :class="type==='volunteer'?'fa-solid fa-user-group':'fa-solid fa-calendar-star'" class="text-5xl mb-3" :class="type==='volunteer'?'text-orange-400':'text-blue-400'"></i>
+                        <p class="text-sm font-medium" :class="type==='volunteer'?'text-orange-500':'text-blue-500'">{{type==='volunteer'?'志愿者故事':'活动详情'}}</p>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-6 -mt-8 relative z-10">
+            <div class="bg-white rounded-2xl shadow-lg p-6 sm:p-10 border border-gray-100">
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                        :class="item.category==='课程活动'?'bg-blue-50 text-blue-600':
+                                item.category==='社区活动'?'bg-emerald-50 text-emerald-600':
+                                item.category==='研学活动'?'bg-purple-50 text-purple-600':
+                                item.category==='成果总结'?'bg-orange-50 text-orange-600':
+                                'bg-slate-100 text-slate-600'">
+                        {{item.category || item.type || '未分类'}}
+                    </span>
+                    <span v-if="item.activityDate" class="text-[12px] text-gray-400"><i class="fa-regular fa-calendar-check mr-1"></i>{{item.activityDate}}</span>
+                    <span v-if="item.publishDate" class="text-[12px] text-gray-400"><i class="fa-regular fa-calendar-check mr-1"></i>{{item.publishDate}}</span>
+                </div>
+
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-snug mb-5">{{displayTitle}}</h1>
+
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 mb-8 pb-6 border-b border-gray-100">
+                    <span v-if="item.location"><i class="fa-solid fa-location-dot text-red-400 mr-1.5"></i>{{item.location}}</span>
+                    <span v-if="item.communityName"><i class="fa-solid fa-building text-blue-400 mr-1.5"></i>{{item.communityName}}</span>
+                    <span v-if="item.participantCount"><i class="fa-solid fa-users text-emerald-400 mr-1.5"></i>参与 {{item.participantCount}} 人</span>
+                    <span v-if="item.volunteerCount"><i class="fa-solid fa-hand-holding-heart text-pink-400 mr-1.5"></i>志愿者 {{item.volunteerCount}} 人</span>
+                    <span v-if="item.serviceHours"><i class="fa-solid fa-clock text-orange-400 mr-1.5"></i>服务 {{item.serviceHours}} 小时</span>
+                    <span v-if="item.school"><i class="fa-solid fa-graduation-cap text-indigo-400 mr-1.5"></i>{{item.school}}</span>
+                    <span v-if="item.memberCount"><i class="fa-solid fa-people-group text-indigo-400 mr-1.5"></i>{{item.memberCount}} 人</span>
+                    <span v-if="item.serviceCommunity"><i class="fa-solid fa-map-location-dot text-teal-400 mr-1.5"></i>{{item.serviceCommunity}}</span>
+                    <span v-if="item.viewCount !== undefined"><i class="fa-solid fa-eye text-gray-400 mr-1.5"></i>{{item.viewCount}} 次浏览</span>
+                    <span v-if="item.source"><i class="fa-solid fa-newspaper text-sky-400 mr-1.5"></i>来源：{{item.source}}</span>
+                </div>
+
+                <div v-if="item.summary && item.content" class="bg-slate-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-8 text-sm text-gray-600 italic leading-relaxed">
+                    {{item.summary}}
+                </div>
+
+                <div class="text-gray-800 leading-loose text-base space-y-4" v-html="formattedContent"></div>
+
+                <div class="mt-10 pt-6 border-t border-gray-100 text-center">
+                    <a href="/" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-gray-600 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                        <i class="fa-solid fa-arrow-left text-xs"></i> 返回首页
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="bg-white border-t border-gray-100 text-[11px] text-gray-400 py-5 text-center mt-12">
+    <p class="font-medium text-gray-500">&copy; 2026 "小候鸟"关爱宣传展示平台</p>
+    <p>广东科技学院"科技圆梦"突击队 · 共青团东莞市石排镇委员会</p>
+</footer>
+
+<script>
+const { ref, computed, onMounted } = Vue;
+
+const app = Vue.createApp({
+    setup() {
+        const loading = ref(true);
+        const errorMsg = ref('');
+        const item = ref(null);
+        const type = ref('');
+
+        const displayTitle = computed(() => {
+            if (!item.value) return '';
+            return item.value.title || item.value.storyTitle || item.value.name || '';
+        });
+
+        const formattedContent = computed(() => {
+            const text = item.value?.content || item.value?.storyContent || item.value?.description || '';
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/【(.+?)】/g, '<span class="block text-base font-bold text-gray-800 mt-6 mb-3 border-l-4 border-blue-500 pl-4 py-1.5 bg-blue-50/50 rounded-r-lg">$1</span>')
+                .replace(/· (.+)/g, '<span class="flex items-start gap-2.5 pl-2"><span class="text-blue-500 mt-0.5 font-bold">·</span><span>$1</span></span>')
+                .replace(/^/, '<p>').replace(/$/, '</p>');
+        });
+
+        async function load() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            type.value = params.get('type') || 'activity';
+
+            if (!id) {
+                errorMsg.value = '缺少参数，无法查看详情';
+                loading.value = false;
+                return;
+            }
+
+            const apiPath = type.value === 'volunteer'
+                ? '/api/public/volunteer/' + id
+                : '/api/public/activity/' + id;
+
+            try {
+                const res = await fetch(apiPath);
+                const data = await res.json();
+                if (data.code !== 200) throw new Error(data.msg || '数据加载失败');
+                item.value = data.data;
+
+                const title = displayTitle.value || '详情';
+                document.title = title + ' - 小候鸟关爱平台';
+            } catch(e) {
+                errorMsg.value = e.message || '数据加载失败，请稍后重试';
+            } finally {
+                loading.value = false;
+            }
+        }
+
+        onMounted(load);
+
+        return { loading, errorMsg, item, type, displayTitle, formattedContent };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小候鸟关爱平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background-color: #f7f9fc; font-size: 15px; }
+        .hero-banner-gradient { background: linear-gradient(135deg, #e0f2fe 0%, #fff7ed 50%, #fdf2f8 100%); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .animate-fadeIn { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    </style>
+</head>
+<body class="text-gray-700 antialiased">
+<div id="app" class="min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" @click="switchTab('results')">
+                <div class="bg-blue-600 text-white w-9 h-9 rounded-full flex items-center justify-center"><i class="fa-solid fa-dove text-base"></i></div>
+                <div><h1 class="text-lg font-bold text-gray-900">小候鸟关爱平台</h1><p class="text-[10px] text-gray-400">青春赋能 · 关爱成长 · 共筑未来</p></div>
+            </div>
+            <nav class="hidden md:flex items-center space-x-1 text-sm font-medium">
+                <button v-for="t in tabs" :key="t.key" @click="switchTab(t.key)" :class="currentTab === t.key ? 'text-blue-600 border-b-2 border-blue-600 font-semibold' : 'text-gray-500 hover:text-blue-600'" class="px-4 py-5 transition-all">{{t.label}}</button>
+            </nav>
+            <div class="flex items-center space-x-2 text-xs text-gray-600 border-l border-gray-100 pl-4">
+                <div class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold"><i class="fa-solid fa-building-columns"></i></div>
+                <span class="font-medium hidden sm:inline text-gray-800">石排镇团委</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow pb-12">
+
+        <!-- ========== 活动成果中心 ========== -->
+        <div v-if="currentTab === 'results'" class="max-w-7xl mx-auto px-6 pt-6 space-y-6 animate-fadeIn">
+            <div class="hero-banner-gradient rounded-2xl p-8 border border-white/60 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6">
+                <div class="space-y-3 max-w-xl">
+                    <h2 class="text-3xl font-extrabold text-blue-900 tracking-tight">活动成果展示中心</h2>
+                    <p class="text-blue-700/80 text-sm font-medium">记录每一次陪伴与成长，全景呈现属于"小候鸟"的精彩暑期生活。</p>
+                </div>
+                <div class="bg-white/90 backdrop-blur p-4 rounded-xl shadow-sm border border-gray-100 min-w-[320px] space-y-3">
+                    <div class="flex justify-between items-center text-[11px] text-gray-400 border-b border-gray-100 pb-1.5">
+                        <span class="font-bold text-gray-700"><i class="fa-solid fa-chart-pie text-blue-500 mr-1"></i>平台数据总览</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="p-2 bg-blue-50/60 rounded-lg"><p class="text-[10px] text-gray-400">活动总数</p><p class="text-lg font-black text-blue-600">{{overview.totalActivities}} <span class="text-[10px] text-gray-400">场</span></p></div>
+                        <div class="p-2 bg-pink-50/60 rounded-lg"><p class="text-[10px] text-gray-400">服务人次</p><p class="text-lg font-black text-pink-600">{{overview.totalParticipants}} <span class="text-[10px] text-gray-400">人</span></p></div>
+                        <div class="p-2 bg-orange-50/60 rounded-lg"><p class="text-[10px] text-gray-400">志愿者</p><p class="text-lg font-black text-orange-600">{{overview.totalVolunteers}} <span class="text-[10px] text-gray-400">人</span></p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
+                <button v-for="cat in categories" :key="cat" @click="activeTag=cat; page=1; loadActivities()" :class="activeTag===cat ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'" class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all">{{cat}}</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div v-for="t in topics" :key="t.id" :class="'bg-gradient-to-br from-' + t.coverColor + '-500 to-' + t.coverColor + '-600 p-5 rounded-xl text-white shadow-sm hover:scale-[1.01] transition-all'">
+                    <span class="bg-white/20 text-[10px] px-2 py-0.5 rounded font-bold uppercase">{{t.icon || '专题'}}</span>
+                    <h3 class="font-bold text-base mt-2">{{t.title}}</h3>
+                    <p class="text-xs text-white/80 mt-1 mb-4">{{t.description}}</p>
+                    <button class="text-xs font-bold bg-white text-blue-600 px-3 py-1.5 rounded-lg shadow-sm">进入专题 <i class="fa-solid fa-angle-right ml-0.5"></i></button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                <div class="lg:col-span-2 space-y-4">
+                    <div v-if="activities.length===0" class="text-center py-12 text-gray-400"><i class="fa-solid fa-inbox text-3xl mb-2 block"></i>暂无活动数据</div>
+                    <div v-for="a in activities" :key="a.id" class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex flex-col sm:flex-row gap-4 hover:shadow-md transition-all">
+                        <div class="sm:w-44 bg-slate-100 rounded-lg flex flex-col items-center justify-center border border-gray-200/60 shrink-0 text-slate-400 text-xs py-8">
+                            <img v-if="a.coverUrl" :src="a.coverUrl" class="w-full h-full object-cover rounded-lg" />
+                            <template v-else><i class="fa-regular fa-image text-2xl mb-1 text-slate-300"></i>活动实拍图</template>
+                        </div>
+                        <div class="flex-grow flex flex-col justify-between space-y-2">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-blue-50 text-blue-600 font-bold text-[10px] px-2 py-0.5 rounded">{{a.category}}</span>
+                                    <span class="text-gray-400 text-[11px]"><i class="fa-regular fa-calendar-check mr-1"></i>{{a.activityDate || a.createTime}}</span>
+                                </div>
+                                <h4 class="font-bold text-gray-900 text-sm mt-1 hover:text-blue-600 cursor-pointer">{{a.title}}</h4>
+                                <p class="text-gray-500 text-xs leading-relaxed mt-1 line-clamp-2">{{a.summary}}</p>
+                            </div>
+                            <div class="flex flex-wrap items-center justify-between text-[11px] text-gray-400 border-t border-gray-50 pt-2">
+                                <span class="font-medium text-gray-500" v-if="a.communityName"><i class="fa-solid fa-map-location-dot text-blue-500 mr-1"></i>{{a.communityName}}</span>
+                                <span v-if="a.participantCount">参与：{{a.participantCount}}人</span>
+                                <span class="text-blue-600 font-bold cursor-pointer hover:underline" @click="viewDetail(a)">查看详情 <i class="fa-solid fa-angle-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center gap-2 pt-4" v-if="totalPages>1">
+                        <button v-for="p in totalPages" :key="p" @click="page=p;loadActivities()" :class="page===p ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border'" class="px-3 py-1 rounded text-xs font-semibold">{{p}}</button>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <h4 class="text-xs font-bold text-gray-900 border-b border-gray-100 pb-2 mb-2"><i class="fa-solid fa-bullhorn text-blue-500 mr-1"></i> 最新动态</h4>
+                        <div class="space-y-2.5 text-xs">
+                            <div v-for="r in recentActivities" :key="r.id" class="flex justify-between text-gray-600 hover:text-blue-600 cursor-pointer" @click="viewDetail(r)">
+                                <span class="truncate">· {{r.title}}</span><span class="text-gray-400 ml-2">{{r.activityDate}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <h4 class="text-xs font-bold text-gray-900 border-b border-gray-100 pb-2 mb-2.5"><i class="fa-solid fa-tags text-orange-400 mr-1"></i> 标签云</h4>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span v-for="tag in allTags" :key="tag" class="bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200/60 text-[10px] px-2 py-0.5 rounded cursor-pointer">{{tag}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 青春志愿故事中心 ========== -->
+        <div v-if="currentTab === 'stories'" class="max-w-7xl mx-auto px-6 pt-6 space-y-6 animate-fadeIn">
+            <div class="hero-banner-gradient rounded-2xl p-8 border border-white/60 shadow-sm"><h2 class="text-3xl font-extrabold text-orange-900">青春志愿故事中心</h2><p class="text-orange-800/80 text-sm mt-2">用青春陪伴成长，记录每一份扎根石排基层的温暖与奔赴。</p></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div v-for="v in volunteers" :key="v.id" class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="bg-slate-800 h-44 flex items-center justify-center relative text-slate-400 text-xs">
+                        <span class="absolute top-3 left-3 bg-black/40 text-white px-2 py-0.5 rounded text-[10px]">{{v.type==='TEAM'?'团队':'个人'}}</span>
+                        <img v-if="v.coverUrl" :src="v.coverUrl" class="w-full h-full object-cover" />
+                        <template v-else><i class="fa-solid fa-camera-retro text-2xl mr-2 text-slate-600"></i>{{v.name}}现场照</template>
+                    </div>
+                    <div class="p-4 space-y-2">
+                        <div class="flex justify-between text-[11px] text-gray-400"><span>{{v.school || v.name}}</span><span v-if="v.serviceHours">服务工时：{{v.serviceHours}} 小时</span></div>
+                        <h4 class="font-bold text-gray-900 text-sm">"{{v.storyTitle || v.name}}"</h4>
+                        <p class="text-gray-500 text-xs leading-relaxed">{{v.description}}</p>
+                        <div class="text-right pt-1"><span class="text-blue-600 text-xs font-semibold cursor-pointer" @click="viewVolunteer(v)">阅读全文 ></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 百千万工程专区 ========== -->
+        <div v-if="currentTab === 'project'" class="max-w-7xl mx-auto px-6 pt-6 space-y-6 animate-fadeIn">
+            <div class="border-b border-gray-200 pb-4"><h2 class="text-2xl font-black text-gray-900">"百千万工程"基层服务专区</h2><p class="text-gray-500 text-xs mt-0.5">对接"广东青年大学生百千万工程突击队行动"</p></div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-[11px] text-gray-400">联动高校团队</p><h3 class="text-2xl font-black text-slate-800">{{volunteers.length}} <span class="text-xs text-gray-400">支</span></h3></div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-[11px] text-gray-400">开展活动</p><h3 class="text-2xl font-black text-slate-800">{{overview.totalActivities}} <span class="text-xs text-gray-400">场</span></h3></div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-[11px] text-gray-400">社区覆盖</p><h3 class="text-2xl font-black text-slate-800">{{communities.length}} <span class="text-xs text-gray-400">个</span></h3></div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-[11px] text-gray-400">服务人次</p><h3 class="text-2xl font-black text-blue-600">{{overview.totalParticipants}} <span class="text-xs text-gray-400">人</span></h3></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="text-xs font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-earth-asia text-emerald-500 mr-1"></i> 社区覆盖分布</div>
+                    <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                        <div v-for="c in communities" :key="c.id" class="p-2 bg-slate-50 rounded-lg flex justify-between"><span class="font-bold text-gray-700">{{c.name}}</span><span class="text-gray-400">{{c.description}}</span></div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="text-xs font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-newspaper text-blue-500 mr-1"></i> 媒体报道</div>
+                    <div class="space-y-2.5 text-xs mt-2">
+                        <div v-for="m in medias" :key="m.id" class="p-2.5 bg-gray-50 rounded-lg border hover:bg-gray-100 cursor-pointer">
+                            <span class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded font-bold">{{m.source}}</span>
+                            <p class="font-bold text-gray-800 mt-1 truncate">{{m.title}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 text-[11px] text-gray-400 py-5 text-center mt-auto">
+        <p class="font-medium text-gray-500">&copy; 2026 "小候鸟"关爱宣传展示平台</p>
+        <p>广东科技学院"科技圆梦"突击队 · 共青团东莞市石排镇委员会</p>
+    </footer>
+</div>
+
+<script>
+const API = '';
+
+const { createApp, ref, onMounted, reactive } = Vue;
+
+createApp({
+    setup() {
+        const currentTab = ref('results');
+        const activeTag = ref('全部');
+
+        const tabs = [
+            { key: 'results', label: '活动成果中心' },
+            { key: 'stories', label: '青春志愿故事中心' },
+            { key: 'project', label: '百千万工程专区' }
+        ];
+        const categories = ['全部', '课程活动', '社区活动', '研学活动', '成果总结'];
+
+        const activities = ref([]);
+        const volunteers = ref([]);
+        const medias = ref([]);
+        const communities = ref([]);
+        const topics = ref([]);
+        const recentActivities = ref([]);
+        const overview = reactive({ totalActivities: 0, totalParticipants: 0, totalVolunteers: 0 });
+        const allTags = ref(['暑期托育','非遗传承','安全演练','心理辅导','科普研学','高校协同','传统文化','亲子互动']);
+        const page = ref(1); const size = ref(10); const totalPages = ref(1);
+
+        async function fetchApi(url, opts = {}) {
+            const headers = { 'Content-Type': 'application/json' };
+            opts.headers = { ...headers, ...opts.headers };
+            const res = await fetch(API + url, opts);
+            const data = await res.json();
+            if (data.code !== 200) throw new Error(data.msg);
+            return data.data;
+        }
+
+        async function loadActivities() {
+            try {
+                const cat = activeTag.value === '全部' ? '' : '&category=' + encodeURIComponent(activeTag.value);
+                const data = await fetchApi('/api/public/activity?page=' + page.value + '&size=' + size.value + cat);
+                activities.value = data.records;
+                totalPages.value = Math.ceil(data.total / data.size);
+            } catch(e) { console.error(e); }
+        }
+        async function loadStats() {
+            try {
+                const data = await fetchApi('/api/public/activity/statistics');
+                overview.totalActivities = data.totalActivities;
+                overview.totalParticipants = data.totalParticipants;
+                overview.totalVolunteers = data.totalVolunteers;
+            } catch(e) {}
+        }
+        async function loadRecent() {
+            try {
+                const data = await fetchApi('/api/public/activity?page=1&size=5');
+                recentActivities.value = data.records;
+            } catch(e) {}
+        }
+        async function loadVolunteers() {
+            try {
+                const data = await fetchApi('/api/public/volunteer?page=1&size=20');
+                volunteers.value = data.records;
+            } catch(e) {}
+        }
+        async function loadCommunities() {
+            try {
+                communities.value = await fetchApi('/api/public/community');
+            } catch(e) {}
+        }
+        async function loadTopics() {
+            try {
+                topics.value = await fetchApi('/api/public/topic');
+            } catch(e) {}
+        }
+        async function loadMedias() {
+            try {
+                const data = await fetchApi('/api/admin/media?page=1&size=20');
+                medias.value = data.records;
+            } catch(e) {}
+        }
+
+        function switchTab(tab) {
+            currentTab.value = tab;
+            if (tab === 'results') { loadActivities(); loadStats(); loadRecent(); loadTopics(); }
+            if (tab === 'stories') loadVolunteers();
+            if (tab === 'project') { loadCommunities(); loadStats(); loadVolunteers(); loadMedias(); }
+        }
+
+        onMounted(() => {
+            loadActivities();
+            loadStats();
+            loadRecent();
+            loadTopics();
+            loadCommunities();
+            loadVolunteers();
+        });
+
+        function viewDetail(a) {
+            window.location.href = '/detail.html?type=activity&id=' + a.id;
+        }
+        function viewVolunteer(v) {
+            window.location.href = '/detail.html?type=volunteer&id=' + v.id;
+        }
+
+        return {
+            currentTab, activeTag, tabs, categories,
+            activities, volunteers, medias, communities, topics, recentActivities,
+            overview, allTags, page, totalPages,
+            switchTab, loadActivities,
+            viewDetail, viewVolunteer
+        }
+    }
+}).mount('#app')
+</script>
+</body>
+</html>

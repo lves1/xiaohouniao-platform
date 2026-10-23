@@ -1,0 +1,22 @@
+# Build and runtime files
+**/target/
+**/node_modules/
+**/logs/
+**/uploads/
+*.log
+*.log.gz
+*.tmp
+.flattened-pom.xml
+effective-pom
+# Local settings and credentials
+.idea/
+.vscode/
+*.iml
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+application-local.yml

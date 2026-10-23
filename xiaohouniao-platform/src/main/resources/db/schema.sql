@@ -1,0 +1,131 @@
+CREATE DATABASE IF NOT EXISTS xiaohouniao DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE xiaohouniao;
+
+-- 管理员用户表
+CREATE TABLE IF NOT EXISTS sys_user (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(64) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    nickname VARCHAR(64) NOT NULL,
+    role VARCHAR(32) NOT NULL DEFAULT 'ADMIN' COMMENT 'ADMIN/SUPER_ADMIN',
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '1启用 0禁用',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员用户表';
+
+-- 社区表
+CREATE TABLE IF NOT EXISTS community (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL COMMENT '社区名称',
+    description VARCHAR(500) DEFAULT NULL COMMENT '社区简介',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '排序',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='社区表';
+
+-- 活动表
+CREATE TABLE IF NOT EXISTS activity (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL COMMENT '活动标题',
+    summary VARCHAR(500) DEFAULT NULL COMMENT '活动简介',
+    content TEXT COMMENT '详细内容',
+    cover_url VARCHAR(500) DEFAULT NULL COMMENT '封面图',
+    category VARCHAR(50) NOT NULL DEFAULT '课程活动' COMMENT '分类：课程活动/社区活动/研学活动/成果总结',
+    community_id BIGINT DEFAULT NULL COMMENT '所属社区',
+    community_name VARCHAR(100) DEFAULT NULL COMMENT '社区名称',
+    location VARCHAR(200) DEFAULT NULL COMMENT '活动地点',
+    activity_date DATE DEFAULT NULL COMMENT '活动日期',
+    participant_count INT DEFAULT 0 COMMENT '参与人数',
+    volunteer_count INT DEFAULT 0 COMMENT '志愿者人数',
+    tags VARCHAR(500) DEFAULT NULL COMMENT '标签，逗号分隔',
+    is_featured TINYINT NOT NULL DEFAULT 0 COMMENT '是否精选',
+    is_published TINYINT NOT NULL DEFAULT 0 COMMENT '是否发布',
+    view_count INT NOT NULL DEFAULT 0 COMMENT '浏览量',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动表';
+
+-- 活动图片表
+CREATE TABLE IF NOT EXISTS activity_image (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    activity_id BIGINT NOT NULL COMMENT '活动ID',
+    image_url VARCHAR(500) NOT NULL COMMENT '图片URL',
+    sort_order INT DEFAULT 0 COMMENT '排序',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动图片表';
+
+-- 志愿者/团队表
+CREATE TABLE IF NOT EXISTS volunteer (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(20) NOT NULL DEFAULT 'TEAM' COMMENT 'TEAM/INDIVIDUAL',
+    name VARCHAR(100) NOT NULL COMMENT '团队名称或志愿者姓名',
+    school VARCHAR(200) DEFAULT NULL COMMENT '所属学校',
+    member_count INT DEFAULT 0 COMMENT '成员人数',
+    description TEXT COMMENT '简介',
+    story_title VARCHAR(200) DEFAULT NULL COMMENT '故事标题',
+    story_content TEXT COMMENT '故事内容',
+    cover_url VARCHAR(500) DEFAULT NULL COMMENT '封面图',
+    service_hours DECIMAL(10,1) DEFAULT 0 COMMENT '服务时长（小时）',
+    service_community VARCHAR(500) DEFAULT NULL COMMENT '服务社区',
+    sort_order INT DEFAULT 0 COMMENT '排序',
+    is_published TINYINT NOT NULL DEFAULT 0 COMMENT '是否发布',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='志愿者/团队表';
+
+-- 媒体素材表
+CREATE TABLE IF NOT EXISTS media (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(20) NOT NULL COMMENT 'IMAGE/VIDEO/ARTICLE',
+    title VARCHAR(200) NOT NULL COMMENT '标题',
+    url VARCHAR(500) DEFAULT NULL COMMENT '媒体URL',
+    source VARCHAR(100) DEFAULT NULL COMMENT '来源',
+    category VARCHAR(50) DEFAULT NULL COMMENT '分类',
+    publish_date DATE DEFAULT NULL COMMENT '发布日期',
+    summary VARCHAR(500) DEFAULT NULL COMMENT '简介',
+    sort_order INT DEFAULT 0 COMMENT '排序',
+    is_published TINYINT NOT NULL DEFAULT 0 COMMENT '是否发布',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='媒体素材表';
+
+-- 专题表
+CREATE TABLE IF NOT EXISTS topic (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL COMMENT '专题标题',
+    subtitle VARCHAR(200) DEFAULT NULL COMMENT '副标题',
+    cover_color VARCHAR(20) DEFAULT NULL COMMENT '封面渐变色',
+    icon VARCHAR(50) DEFAULT NULL COMMENT '图标',
+    description TEXT COMMENT '描述',
+    sort_order INT DEFAULT 0 COMMENT '排序',
+    is_published TINYINT NOT NULL DEFAULT 0 COMMENT '是否发布',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='专题表';
+
+-- 专题-活动关联表
+CREATE TABLE IF NOT EXISTS topic_activity (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    topic_id BIGINT NOT NULL,
+    activity_id BIGINT NOT NULL,
+    sort_order INT DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='专题活动关联表';
+
+-- 初始化超级管理员 (密码: admin123，BCrypt加密)
+INSERT INTO sys_user (username, password, nickname, role) VALUES
+('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '超级管理员', 'SUPER_ADMIN');
+
+-- 初始化社区数据
+INSERT INTO community (name, description, sort_order) VALUES
+('太和社区', '石排镇太和社区新时代文明实践站', 1),
+('石排村', '石排镇石排村委会', 2),
+('庙边王社区', '石排镇庙边王社区', 3),
+('向西村', '石排镇向西村委会', 4),
+('燕窝村', '石排镇燕窝村委会', 5),
+('沙角村', '石排镇沙角村委会', 6);
